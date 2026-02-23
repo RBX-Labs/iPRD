@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "slug": "sample-iprd-deployment",
+      "title": "Sample iPRD Deployment",
+      "path": "sample-iprd-deployment",
+      "updated_at": "2026-02-23T17:28:00Z"
+    },
+    {
       "slug": "AI-index",
       "title": "AI Features",
       "path": "AI-index",
