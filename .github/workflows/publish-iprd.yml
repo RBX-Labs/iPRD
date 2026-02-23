@@ -1,0 +1,108 @@
+name: Publish iPRD Page
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "URL slug (example: AI-index)"
+        required: true
+        type: string
+      title:
+        description: "Display title"
+        required: true
+        type: string
+      html_base64:
+        description: "Base64 encoded index.html"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate and write files
+        env:
+          INPUT_SLUG: ${{ inputs.slug }}
+          INPUT_TITLE: ${{ inputs.title }}
+          INPUT_HTML_BASE64: ${{ inputs.html_base64 }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import datetime as dt
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          slug = os.environ.get("INPUT_SLUG", "").strip()
+          title = os.environ.get("INPUT_TITLE", "").strip() or slug
+          html_b64 = os.environ.get("INPUT_HTML_BASE64", "").strip()
+
+          if not re.fullmatch(r"[A-Za-z0-9-]+", slug):
+              raise SystemExit("Invalid slug. Allowed: letters, numbers, hyphen")
+
+          try:
+              html = base64.b64decode(html_b64).decode("utf-8")
+          except Exception as exc:
+              raise SystemExit(f"Invalid html_base64 payload: {exc}")
+
+          if "<h1>Interactive iPRD</h1>" not in html:
+              raise SystemExit("Rejected: missing required visible title <h1>Interactive iPRD</h1>")
+
+          page_dir = Path(slug)
+          page_dir.mkdir(parents=True, exist_ok=True)
+          (page_dir / "index.html").write_text(html, encoding="utf-8")
+
+          registry_path = Path("iprds/index.json")
+          registry_path.parent.mkdir(parents=True, exist_ok=True)
+
+          data = {"items": []}
+          if registry_path.exists():
+              data = json.loads(registry_path.read_text(encoding="utf-8"))
+              if not isinstance(data, dict) or "items" not in data:
+                  data = {"items": []}
+
+          items = data.get("items", [])
+          now = dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+          path = slug
+
+          found = False
+          for item in items:
+              if item.get("slug") == slug:
+                  item["title"] = title
+                  item["path"] = path
+                  item["updated_at"] = now
+                  found = True
+                  break
+
+          if not found:
+              items.append({
+                  "slug": slug,
+                  "title": title,
+                  "path": path,
+                  "updated_at": now,
+              })
+
+          items.sort(key=lambda x: (x.get("updated_at", ""), x.get("slug", "")), reverse=True)
+          data["items"] = items
+          registry_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git add .
+          git commit -m "publish: ${{ inputs.slug }}"
+          git push
