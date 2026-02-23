@@ -1,21 +1,39 @@
-MIT License
+RBX Labs Proprietary License v1.0
+Copyright (c) 2026 RBX Labs. All Rights Reserved.
 
-Copyright (c) 2026 RBX Labs
+1. Ownership
+This software, all source code, design, content, documentation, and related materials
+(the "Software") are and remain the exclusive property of RBX Labs.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+2. No License Granted
+No right, title, or interest in or to the Software is granted except as explicitly set
+forth in a separate written agreement signed by RBX Labs.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+3. Prohibited Uses
+Without prior written permission from RBX Labs, you may not, and may not permit any
+third party to:
+- use, copy, reproduce, publish, distribute, sublicense, sell, lease, or transfer the Software;
+- modify, adapt, translate, reverse engineer, decompile, disassemble, or create derivative works;
+- remove or alter proprietary notices or labels;
+- use the Software for commercial, competitive, or training purposes.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+4. Unauthorized Use
+Any unauthorized use is strictly prohibited and may constitute copyright infringement,
+breach of contract, and other violations of applicable law.
+
+5. Enforcement
+RBX Labs reserves all rights and remedies available at law and in equity, including the
+right to seek injunctive relief, damages, attorneys' fees, and other relief.
+
+6. No Warranty
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, AND NON-INFRINGEMENT.
+
+7. Limitation of Liability
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, RBX LABS SHALL NOT BE LIABLE FOR ANY INDIRECT,
+INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES ARISING OUT OF OR
+RELATING TO THE SOFTWARE.
+
+8. Contact
+For licensing requests, contact: legal@rbxlabs.io
