@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: iPRD GitHub Actions Connector
   description: Trigger and check iPRD GitHub Actions workflow runs.
-  version: 1.0.1
+  version: 1.0.2
 servers:
   - url: https://api.github.com
 security:
@@ -136,10 +136,10 @@ components:
 
     PublishInputs:
       type: object
+      description: Provide at least one of html_base64 or html_gzip_base64.
       required:
         - slug
         - title
-        - html_base64
       properties:
         slug:
           type: string
@@ -150,7 +150,11 @@ components:
           example: AI Features
         html_base64:
           type: string
-          description: Base64-encoded full HTML content.
+          description: Base64-encoded full HTML content (use for normal payload size).
+          example: PCFET0NUWVBFIGh0bWw+Li4u
+        html_gzip_base64:
+          type: string
+          description: Gzip-compressed then base64-encoded full HTML content (use for large payloads).
           example: PCFET0NUWVBFIGh0bWw+Li4u
 
     WorkflowRunsResponse:

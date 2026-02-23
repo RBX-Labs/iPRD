@@ -363,6 +363,7 @@
     const REPO_OWNER = "RBX-Labs";
     const REPO_NAME = "iPRD";
     const WORKFLOW_FILE = "publish-iprd.yml";
+    const WORKFLOW_INPUT_LIMIT = 65535;
 
     const fileInput = document.getElementById("htmlFile");
     const htmlInput = document.getElementById("htmlInput");
@@ -388,6 +389,28 @@
       return btoa(unescape(encodeURIComponent(str)));
     }
 
+    function toUtf8Bytes(str) {
+      return new TextEncoder().encode(str);
+    }
+
+    async function gzipToB64(str) {
+      if (typeof CompressionStream === "undefined") {
+        return null;
+      }
+      const input = toUtf8Bytes(str);
+      const cs = new CompressionStream("gzip");
+      const writer = cs.writable.getWriter();
+      writer.write(input);
+      writer.close();
+      const compressedBuffer = await new Response(cs.readable).arrayBuffer();
+      let binary = "";
+      const bytes = new Uint8Array(compressedBuffer);
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
     function getHtml() {
       return htmlInput.value.trim();
     }
@@ -396,6 +419,10 @@
       statusBox.textContent = msg;
       statusBox.className = "status";
       if (kind) statusBox.classList.add(kind);
+    }
+
+    function estimateDispatchPayloadChars(payload) {
+      return JSON.stringify(payload).length;
     }
 
     function inferSurface(html) {
@@ -429,6 +456,20 @@
         ok: html.length < 150000,
         detail: "Large payloads may fail dispatch due to workflow input limits."
       });
+      const plainPayload = {
+        ref: "main",
+        inputs: {
+          slug: slugify(slugInput.value || "sample-slug"),
+          title: (titleInput.value || "Sample Title").trim(),
+          html_base64: toB64(html)
+        }
+      };
+      const estimatedChars = estimateDispatchPayloadChars(plainPayload);
+      results.push({
+        label: "Dispatch payload estimate",
+        ok: estimatedChars < WORKFLOW_INPUT_LIMIT,
+        detail: `Plain payload is ~${estimatedChars} chars; workflow_dispatch limit is ${WORKFLOW_INPUT_LIMIT}.`
+      });
 
       checks.innerHTML = "<h2 class=\"section-title\" style=\"margin-top:0;\">Preflight Checks</h2>";
       results.forEach((r) => {
@@ -439,6 +480,45 @@
       });
 
       return results;
+    }
+
+    async function buildDispatchPayload(html, slug, title) {
+      const plainPayload = {
+        ref: "main",
+        inputs: {
+          slug,
+          title,
+          html_base64: toB64(html)
+        }
+      };
+      const plainChars = estimateDispatchPayloadChars(plainPayload);
+      if (plainChars <= WORKFLOW_INPUT_LIMIT) {
+        return { payload: plainPayload, mode: "plain", chars: plainChars };
+      }
+
+      const gzipB64 = await gzipToB64(html);
+      if (!gzipB64) {
+        throw new Error(
+          `Payload too large (${plainChars} chars) and gzip compression is unavailable in this browser.`
+        );
+      }
+
+      const gzipPayload = {
+        ref: "main",
+        inputs: {
+          slug,
+          title,
+          html_gzip_base64: gzipB64
+        }
+      };
+      const gzipChars = estimateDispatchPayloadChars(gzipPayload);
+      if (gzipChars > WORKFLOW_INPUT_LIMIT) {
+        throw new Error(
+          `Payload too large even after gzip (${gzipChars} chars). Split/simplify HTML before deploy.`
+        );
+      }
+
+      return { payload: gzipPayload, mode: "gzip", chars: gzipChars, plainChars };
     }
 
     async function loadRegistry() {
@@ -598,17 +678,20 @@
       }
 
       const endpoint = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/dispatches`;
-      const payload = {
-        ref: "main",
-        inputs: {
-          slug,
-          title,
-          html_base64: toB64(html)
-        }
-      };
 
-      setStatus("Dispatching workflow...", "warn");
       try {
+        const dispatchBuild = await buildDispatchPayload(html, slug, title);
+        const payload = dispatchBuild.payload;
+        const mode = dispatchBuild.mode;
+        const chars = dispatchBuild.chars;
+
+        setStatus(
+          mode === "gzip"
+            ? `Payload exceeds plain limit. Using gzip mode (${chars} chars). Dispatching workflow...`
+            : `Using plain mode (${chars} chars). Dispatching workflow...`,
+          "warn"
+        );
+
         const res = await fetch(endpoint, {
           method: "POST",
           headers: {

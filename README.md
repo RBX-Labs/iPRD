@@ -44,7 +44,12 @@ Use `MASTER_PROMPT_DEPLOY_BLOCK.md` as the deploy instruction block to append to
 - Workflow inputs required:
   - `slug`
   - `title`
-  - `html_base64`
+  - `html_base64` (normal payloads) OR `html_gzip_base64` (large payloads)
+
+### Large payload note
+
+GitHub `workflow_dispatch` has input payload size limits. For large generated HTML pages, use
+`html_gzip_base64` (gzip + base64) instead of `html_base64`.
 
 ## GPT Action Authentication (PAT)
 

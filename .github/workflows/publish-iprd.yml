@@ -13,7 +13,11 @@ on:
         type: string
       html_base64:
         description: "Base64 encoded index.html"
-        required: true
+        required: false
+        type: string
+      html_gzip_base64:
+        description: "Gzip-compressed + base64 encoded index.html"
+        required: false
         type: string
 
 permissions:
@@ -32,9 +36,11 @@ jobs:
           INPUT_SLUG: ${{ inputs.slug }}
           INPUT_TITLE: ${{ inputs.title }}
           INPUT_HTML_BASE64: ${{ inputs.html_base64 }}
+          INPUT_HTML_GZIP_BASE64: ${{ inputs.html_gzip_base64 }}
         run: |
           python3 - <<'PY'
           import base64
+          import gzip
           import datetime as dt
           import json
           import os
@@ -44,14 +50,21 @@ jobs:
           slug = os.environ.get("INPUT_SLUG", "").strip()
           title = os.environ.get("INPUT_TITLE", "").strip() or slug
           html_b64 = os.environ.get("INPUT_HTML_BASE64", "").strip()
+          html_gzip_b64 = os.environ.get("INPUT_HTML_GZIP_BASE64", "").strip()
 
           if not re.fullmatch(r"[A-Za-z0-9-]+", slug):
               raise SystemExit("Invalid slug. Allowed: letters, numbers, hyphen")
 
+          if not html_b64 and not html_gzip_b64:
+              raise SystemExit("Missing HTML payload. Provide html_base64 or html_gzip_base64.")
+
           try:
-              html = base64.b64decode(html_b64).decode("utf-8")
+              if html_gzip_b64:
+                  html = gzip.decompress(base64.b64decode(html_gzip_b64)).decode("utf-8")
+              else:
+                  html = base64.b64decode(html_b64).decode("utf-8")
           except Exception as exc:
-              raise SystemExit(f"Invalid html_base64 payload: {exc}")
+              raise SystemExit(f"Invalid HTML payload: {exc}")
 
           if "<h1>Interactive iPRD</h1>" not in html:
               raise SystemExit("Rejected: missing required visible title <h1>Interactive iPRD</h1>")
