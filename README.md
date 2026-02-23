@@ -32,6 +32,7 @@ The token is stored in browser localStorage only.
 ## GPT Action Connector
 
 Use `openapi.yaml` as the GPT Action schema.
+Use `MASTER_PROMPT_DEPLOY_BLOCK.md` as the deploy instruction block to append to your GPT master prompt.
 
 - Deployment operation: `deployIprdPage`
 - Status operation: `listIprdWorkflowRuns`

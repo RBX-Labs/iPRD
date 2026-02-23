@@ -3,231 +3,361 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>iPRD Host</title>
+  <title>iPRD Deploy Console</title>
   <style>
     :root {
       --bg: #F8FAFC;
       --text: #1E293B;
       --muted: #475569;
       --border: #E2E8F0;
-      --panel: #FFFFFF;
+      --card: #FFFFFF;
+      --brand: #00E5FF;
+      --brand-2: #14B8A6;
+      --warn: #F59E0B;
+      --bad: #E11D48;
+      --ok: #0F766E;
+      --shadow: 0 16px 40px rgba(2, 6, 23, 0.08);
     }
+
     * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
-      padding: 0;
+      height: 100%;
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      height: 100%;
+      font-family: "Inter Tight", "Inter", "Segoe UI", sans-serif;
     }
-    body { display: flex; flex-direction: column; }
-    header {
+
+    body {
+      overflow: hidden;
+      background-image:
+        radial-gradient(circle at 8% 8%, rgba(0, 229, 255, 0.08), transparent 42%),
+        radial-gradient(circle at 92% 12%, rgba(20, 184, 166, 0.08), transparent 36%),
+        linear-gradient(160deg, #F8FAFC 0%, #EDF3F8 52%, #EAF1F5 100%);
+    }
+
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .header {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg);
       z-index: 20;
+      backdrop-filter: blur(8px);
+      background: rgba(248, 250, 252, 0.92);
+      border-bottom: 1px solid var(--border);
       padding: 14px 20px;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
     }
-    h1 {
+
+    .header h1 {
       margin: 0;
       font-size: 22px;
       font-weight: 700;
+      letter-spacing: -0.02em;
     }
+
     .tip {
-      margin-top: 6px;
-      font-size: 13px;
+      margin-top: 4px;
       color: var(--muted);
+      font-size: 13px;
     }
-    main {
-      margin-top: 76px;
-      margin-bottom: 54px;
+
+    .main {
+      margin-top: 78px;
+      margin-bottom: 52px;
       padding: 16px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
       height: calc(100vh - 130px);
       overflow: hidden;
     }
-    .col {
-      background: var(--panel);
+
+    .panel {
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
+      border-radius: 16px;
+      background: var(--card);
+      box-shadow: var(--shadow);
       overflow: auto;
+      padding: 14px;
     }
-    .block {
+
+    .section {
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px;
       margin-bottom: 12px;
       background: #fff;
     }
-    .label {
+
+    .section-title {
+      margin: 0 0 10px;
       font-size: 12px;
       text-transform: uppercase;
+      letter-spacing: 0.08em;
       color: var(--muted);
-      letter-spacing: 0.05em;
-      margin-bottom: 6px;
-      font-weight: 600;
+      font-weight: 700;
     }
-    input[type="text"], input[type="password"], textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 14px;
-      background: #fff;
-      color: var(--text);
-    }
-    textarea {
-      min-height: 150px;
-      resize: vertical;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    }
+
     .row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-    button {
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    textarea,
+    select {
+      width: 100%;
       border: 1px solid var(--border);
+      border-radius: 10px;
       background: #fff;
       color: var(--text);
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      line-height: 1.5;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      border: 1px solid var(--border);
       border-radius: 10px;
+      background: #fff;
+      color: var(--text);
       padding: 10px 12px;
-      font-weight: 600;
       cursor: pointer;
-    }
-    button.primary {
-      background: #0f172a;
-      color: #fff;
-      border-color: #0f172a;
-    }
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-    .status {
+      font-weight: 600;
       font-size: 13px;
-      color: var(--muted);
-      white-space: pre-wrap;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
     }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .primary {
+      color: #00131a;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    }
+
+    .ghost {
+      background: #f8fafc;
+    }
+
+    .status {
+      margin-top: 8px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .status.ok { border-color: #99f6e4; color: var(--ok); background: #f0fdfa; }
+    .status.warn { border-color: #fde68a; color: #92400e; background: #fffbeb; }
+    .status.bad { border-color: #fecdd3; color: #9f1239; background: #fff1f2; }
+
     .cards {
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
+
     .card {
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .card a {
+      color: #0F172A;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .card small {
+      display: block;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .preview-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 10px;
       gap: 10px;
-      background: #fff;
     }
-    .card a {
-      color: #0f172a;
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .card small {
+
+    .badge {
+      font-size: 12px;
       color: var(--muted);
-      display: block;
-      margin-top: 3px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #f8fafc;
     }
+
     iframe {
       width: 100%;
-      min-height: 420px;
+      min-height: 460px;
       border: 1px solid var(--border);
       border-radius: 12px;
       background: #fff;
     }
-    footer {
+
+    .checks {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fcfdff;
+    }
+
+    .check-item {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .check-item b { color: var(--text); }
+
+    .footer {
       position: fixed;
       left: 0;
       right: 0;
       bottom: 0;
-      height: 54px;
+      height: 52px;
       border-top: 1px solid var(--border);
-      background: var(--bg);
+      background: rgba(248, 250, 252, 0.96);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
       color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(6px);
     }
-    @media (max-width: 920px) {
-      main {
+
+    @media (max-width: 980px) {
+      body { overflow: auto; }
+      .main {
         grid-template-columns: 1fr;
         height: auto;
         min-height: calc(100vh - 130px);
       }
+      .panel { min-height: 560px; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Interactive iPRD</h1>
-    <div class="tip">Tip: Use Canvas Preview to interact.</div>
-  </header>
+  <div class="shell">
+    <header class="header">
+      <h1>Interactive iPRD</h1>
+      <div class="tip">Tip: Use Canvas Preview to interact.</div>
+    </header>
 
-  <main>
-    <section class="col">
-      <div class="block">
-        <div class="label">Upload PRD HTML</div>
-        <input id="htmlFile" type="file" accept=".html,text/html" />
-      </div>
-
-      <div class="block">
-        <div class="label">Or Paste HTML</div>
-        <textarea id="htmlInput" placeholder="Paste generated iPRD index.html here"></textarea>
-      </div>
-
-      <div class="block row">
-        <div>
-          <div class="label">Page Slug</div>
-          <input id="slug" type="text" placeholder="AI-index" />
+    <main class="main">
+      <section class="panel">
+        <div class="section">
+          <h2 class="section-title">Hosted PRDs</h2>
+          <div class="btn-row" style="margin-top:0;">
+            <button id="refreshRegistry" class="ghost">Refresh List</button>
+          </div>
+          <div id="cards" class="cards" style="margin-top:10px;"></div>
         </div>
-        <div>
-          <div class="label">Display Title</div>
-          <input id="title" type="text" placeholder="AI Features" />
+
+        <div class="section">
+          <h2 class="section-title">Deploy Payload</h2>
+          <label for="htmlFile">Upload generated HTML</label>
+          <input id="htmlFile" type="file" accept=".html,text/html" />
+
+          <div style="height:10px;"></div>
+          <label for="htmlInput">Or paste generated index.html</label>
+          <textarea id="htmlInput" placeholder="Paste complete HTML here..."></textarea>
+
+          <div style="height:10px;"></div>
+          <div class="row">
+            <div>
+              <label for="slug">Slug</label>
+              <input id="slug" type="text" placeholder="AI-index" />
+            </div>
+            <div>
+              <label for="title">Display Title</label>
+              <input id="title" type="text" placeholder="AI Features" />
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="block">
-        <div class="label">GitHub Token (stored in browser)</div>
-        <input id="token" type="password" placeholder="Fine-grained PAT with Contents+Actions write" />
-        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button id="saveToken">Save Token</button>
-          <button id="clearToken">Clear Token</button>
-          <button id="previewBtn">Preview HTML</button>
-          <button id="deployBtn" class="primary">Deploy as GitHub Page</button>
+        <div class="section">
+          <h2 class="section-title">Authentication</h2>
+          <label for="token">GitHub Fine-Grained PAT</label>
+          <input id="token" type="password" placeholder="Bearer token (Actions + Contents write)" />
+          <div class="btn-row">
+            <button id="saveToken" class="ghost">Save Token</button>
+            <button id="clearToken" class="ghost">Clear Token</button>
+          </div>
+          <div id="status" class="status">Ready. Load HTML, then preview and deploy.</div>
+
+          <div class="btn-row">
+            <button id="validateBtn">Validate HTML</button>
+            <button id="previewBtn">Preview</button>
+            <button id="deployBtn" class="primary">Deploy as GitHub Page</button>
+            <button id="checkRunBtn" class="ghost">Check Latest Run</button>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="block">
-        <div class="label">Deployment Status</div>
-        <div class="status" id="status">Waiting for input.</div>
-      </div>
+      <section class="panel">
+        <div class="preview-head">
+          <h2 class="section-title" style="margin:0;">Preview</h2>
+          <span id="surfaceTag" class="badge">No HTML loaded</span>
+        </div>
+        <iframe id="preview"></iframe>
 
-      <div class="block">
-        <div class="label">Hosted PRDs</div>
-        <div class="cards" id="cards"></div>
-      </div>
-    </section>
+        <div class="checks" id="checks"></div>
+      </section>
+    </main>
 
-    <section class="col">
-      <div class="label">Preview</div>
-      <iframe id="preview"></iframe>
-    </section>
-  </main>
-
-  <footer>Made with ❤️ & ☕ by RBX Labs</footer>
+    <footer class="footer">Made with ❤️ & ☕ by RBX Labs</footer>
+  </div>
 
   <script>
     const REPO_OWNER = "RBX-Labs";
@@ -242,10 +372,8 @@
     const statusBox = document.getElementById("status");
     const previewFrame = document.getElementById("preview");
     const cards = document.getElementById("cards");
-
-    function setStatus(msg) {
-      statusBox.textContent = msg;
-    }
+    const checks = document.getElementById("checks");
+    const surfaceTag = document.getElementById("surfaceTag");
 
     function slugify(raw) {
       return raw
@@ -264,66 +392,184 @@
       return htmlInput.value.trim();
     }
 
+    function setStatus(msg, kind) {
+      statusBox.textContent = msg;
+      statusBox.className = "status";
+      if (kind) statusBox.classList.add(kind);
+    }
+
+    function inferSurface(html) {
+      const t = html.toUpperCase();
+      if (/(MOBILE|IPHONE|ANDROID)/.test(t)) return "MOBILE";
+      if (/(API|DEVELOPER|DEV\b|TERMINAL|CONSOLE)/.test(t)) return "API/DEV";
+      if (/(DESKTOP|MACOS|WINDOWS APP|NATIVE APP)/.test(t)) return "DESKTOP";
+      if (/(WEB|DASHBOARD|BROWSER|SAAS)/.test(t)) return "WEB";
+      return "WEB (fallback)";
+    }
+
+    function runChecks(html) {
+      const results = [];
+      results.push({
+        label: "Required title",
+        ok: html.includes("<h1>Interactive iPRD</h1>"),
+        detail: "Must include exact <h1>Interactive iPRD</h1>."
+      });
+      results.push({
+        label: "Single-file friendly",
+        ok: !/(<script[^>]+src=|<link[^>]+href=)/i.test(html),
+        detail: "No external JS/CSS links for offline requirement."
+      });
+      results.push({
+        label: "Full HTML document",
+        ok: /<html[\s>]/i.test(html) && /<body[\s>]/i.test(html),
+        detail: "Should be complete HTML, not a fragment."
+      });
+      results.push({
+        label: "Size hint",
+        ok: html.length < 150000,
+        detail: "Large payloads may fail dispatch due to workflow input limits."
+      });
+
+      checks.innerHTML = "<h2 class=\"section-title\" style=\"margin-top:0;\">Preflight Checks</h2>";
+      results.forEach((r) => {
+        const row = document.createElement("div");
+        row.className = "check-item";
+        row.innerHTML = `${r.ok ? "✅" : "⚠️"} <b>${r.label}</b> - ${r.detail}`;
+        checks.appendChild(row);
+      });
+
+      return results;
+    }
+
     async function loadRegistry() {
       try {
         const res = await fetch("./iprds/index.json", { cache: "no-store" });
         if (!res.ok) throw new Error("registry not found");
         const data = await res.json();
         cards.innerHTML = "";
+
         (data.items || []).forEach((item) => {
-          const div = document.createElement("div");
-          div.className = "card";
+          const card = document.createElement("div");
+          card.className = "card";
+
           const left = document.createElement("div");
-          const a = document.createElement("a");
-          a.href = item.path;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-          a.textContent = item.title || item.slug;
+          const link = document.createElement("a");
+          link.href = item.path;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = item.title || item.slug;
+
           const meta = document.createElement("small");
-          meta.textContent = item.path;
-          left.appendChild(a);
+          meta.textContent = `${item.path} | ${item.slug}`;
+
+          left.appendChild(link);
           left.appendChild(meta);
-          const right = document.createElement("small");
-          right.textContent = item.updated_at || "";
-          div.appendChild(left);
-          div.appendChild(right);
-          cards.appendChild(div);
+
+          const date = document.createElement("small");
+          date.textContent = item.updated_at || "";
+
+          card.appendChild(left);
+          card.appendChild(date);
+          cards.appendChild(card);
         });
-      } catch (err) {
-        cards.innerHTML = "<div class=\"status\">No registry found yet.</div>";
+
+        if (!data.items || data.items.length === 0) {
+          cards.innerHTML = "<div class=\"status warn\">No deployed pages yet.</div>";
+        }
+      } catch (error) {
+        cards.innerHTML = `<div class="status bad">Registry unavailable: ${error.message}</div>`;
       }
     }
 
-    fileInput.addEventListener("change", async (event) => {
-      const file = event.target.files && event.target.files[0];
+    async function checkLatestRun() {
+      const token = tokenInput.value.trim() || localStorage.getItem("iprd_gh_token") || "";
+      if (!token) {
+        setStatus("Token required to query workflow runs.", "warn");
+        return;
+      }
+
+      const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?event=workflow_dispatch&branch=main&per_page=1`;
+      try {
+        const res = await fetch(url, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/vnd.github+json"
+          }
+        });
+        const bodyText = await res.text();
+        if (!res.ok) {
+          throw new Error(`Run check failed (${res.status}): ${bodyText}`);
+        }
+        const data = JSON.parse(bodyText);
+        const run = (data.workflow_runs || [])[0];
+        if (!run) {
+          setStatus("No workflow_dispatch runs found yet.", "warn");
+          return;
+        }
+
+        const msg = [
+          `Latest run: #${run.id}`,
+          `Status: ${run.status}`,
+          `Conclusion: ${run.conclusion || "n/a"}`,
+          `URL: ${run.html_url}`
+        ].join("\n");
+        setStatus(msg, run.conclusion === "success" ? "ok" : "warn");
+      } catch (error) {
+        setStatus(String(error.message || error), "bad");
+      }
+    }
+
+    fileInput.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
       if (!file) return;
-      const text = await file.text();
-      htmlInput.value = text;
+      const html = await file.text();
+      htmlInput.value = html;
       if (!slugInput.value) slugInput.value = slugify(file.name);
       if (!titleInput.value) titleInput.value = slugInput.value;
-      setStatus("HTML loaded from file.");
+      surfaceTag.textContent = `Surface: ${inferSurface(html)}`;
+      runChecks(html);
+      setStatus("HTML loaded from file.", "ok");
+    });
+
+    document.getElementById("refreshRegistry").addEventListener("click", loadRegistry);
+
+    document.getElementById("validateBtn").addEventListener("click", () => {
+      const html = getHtml();
+      if (!html) {
+        setStatus("Paste or upload HTML first.", "warn");
+        return;
+      }
+      const results = runChecks(html);
+      const hasBlocking = results.some((r) => r.label !== "Size hint" && !r.ok);
+      surfaceTag.textContent = `Surface: ${inferSurface(html)}`;
+      setStatus(hasBlocking ? "Validation found issues. Review checks before deploy." : "Validation passed.", hasBlocking ? "warn" : "ok");
     });
 
     document.getElementById("previewBtn").addEventListener("click", () => {
       const html = getHtml();
       if (!html) {
-        setStatus("Paste or upload HTML first.");
+        setStatus("Paste or upload HTML first.", "warn");
         return;
       }
       previewFrame.srcdoc = html;
-      setStatus("Preview rendered.");
+      surfaceTag.textContent = `Surface: ${inferSurface(html)}`;
+      runChecks(html);
+      setStatus("Preview rendered.", "ok");
     });
 
     document.getElementById("saveToken").addEventListener("click", () => {
-      localStorage.setItem("iprd_gh_token", tokenInput.value.trim());
-      setStatus("Token saved in localStorage.");
+      const token = tokenInput.value.trim();
+      localStorage.setItem("iprd_gh_token", token);
+      setStatus(token ? "Token saved in browser localStorage." : "Empty token saved (cleared).", "ok");
     });
 
     document.getElementById("clearToken").addEventListener("click", () => {
       localStorage.removeItem("iprd_gh_token");
       tokenInput.value = "";
-      setStatus("Token cleared.");
+      setStatus("Token cleared.", "ok");
     });
+
+    document.getElementById("checkRunBtn").addEventListener("click", checkLatestRun);
 
     document.getElementById("deployBtn").addEventListener("click", async () => {
       const html = getHtml();
@@ -332,19 +578,25 @@
       const token = tokenInput.value.trim() || localStorage.getItem("iprd_gh_token") || "";
 
       if (!html) {
-        setStatus("Missing HTML content.");
+        setStatus("Missing HTML content.", "warn");
         return;
       }
       if (!slug) {
-        setStatus("Missing valid slug.");
+        setStatus("Missing valid slug.", "warn");
         return;
       }
       if (!token) {
-        setStatus("Missing GitHub token.");
+        setStatus("Missing GitHub token.", "warn");
         return;
       }
 
-      setStatus("Dispatching GitHub workflow...");
+      const results = runChecks(html);
+      const hasBlocking = results.some((r) => r.label !== "Size hint" && !r.ok);
+      if (hasBlocking) {
+        setStatus("Blocked: validation failed. Fix checks first.", "bad");
+        return;
+      }
+
       const endpoint = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/dispatches`;
       const payload = {
         ref: "main",
@@ -355,6 +607,7 @@
         }
       };
 
+      setStatus("Dispatching workflow...", "warn");
       try {
         const res = await fetch(endpoint, {
           method: "POST",
@@ -366,22 +619,27 @@
           body: JSON.stringify(payload)
         });
 
+        const txt = await res.text();
         if (!res.ok) {
-          const txt = await res.text();
           throw new Error(`Dispatch failed (${res.status}): ${txt}`);
         }
 
         setStatus(
-          `Workflow started for /${slug}.\n` +
-          `Check Actions tab and then open https://rbx-labs.github.io/iPRD/${slug}`
+          `Workflow started for ${slug}.\n` +
+          `Wait for run completion, then open:\n` +
+          `https://rbx-labs.github.io/iPRD/${slug}`,
+          "ok"
         );
-      } catch (err) {
-        setStatus(String(err.message || err));
+
+        setTimeout(loadRegistry, 1500);
+      } catch (error) {
+        setStatus(String(error.message || error), "bad");
       }
     });
 
     tokenInput.value = localStorage.getItem("iprd_gh_token") || "";
     loadRegistry();
+    checks.innerHTML = "<h2 class='section-title' style='margin-top:0;'>Preflight Checks</h2><div class='check-item'>ℹ️ Upload or paste HTML to run checks.</div>";
   </script>
 </body>
 </html>

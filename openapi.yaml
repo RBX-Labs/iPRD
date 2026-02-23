@@ -20,18 +20,21 @@ paths:
           required: true
           schema:
             type: string
+            enum: [RBX-Labs]
             default: RBX-Labs
         - name: repo
           in: path
           required: true
           schema:
             type: string
+            enum: [iPRD]
             default: iPRD
         - name: workflow_id
           in: path
           required: true
           schema:
             type: string
+            enum: [publish-iprd.yml]
             default: publish-iprd.yml
       requestBody:
         required: true
@@ -61,12 +64,14 @@ paths:
           required: true
           schema:
             type: string
+            enum: [RBX-Labs]
             default: RBX-Labs
         - name: repo
           in: path
           required: true
           schema:
             type: string
+            enum: [iPRD]
             default: iPRD
         - name: event
           in: query
@@ -172,8 +177,9 @@ components:
         status:
           type: string
         conclusion:
-          type: string
-          nullable: true
+          anyOf:
+            - type: string
+            - type: "null"
         head_branch:
           type: string
         html_url:
